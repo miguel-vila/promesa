@@ -1,26 +1,5 @@
 'use strict';
 
-const deferred = function () {
-  let promesa = new Promesa();
-  return {
-    promise: promesa,
-    resolve: promesa.resolve,
-    reject:  promesa.reject
-  };
-};
-
-const resolved = function (val) {
-  let promesa = new Promesa();
-  promesa.value = { value: val, success: true };
-  return promesa;
-};
-
-const rejected = function (error) {
-  let promesa = new Promesa();
-  promesa.value = { value: error, success: false };
-  return promesa;
-}
-
 const Promesa = function() {
   this.listeners = [];
   this.value = undefined;
@@ -100,10 +79,14 @@ const Promesa = function() {
   };
 
   this.completeWith = function(wrappedValue) {
-    self.value = wrappedValue;
+    if(!self.value) {
+      self.value = wrappedValue;
 
-    self.listeners.forEach( listener => listener(self.value) );
-    delete self.listeners;
+      self.listeners.forEach( listener => {
+        setTimeout( () => listener(self.value) ); // Promises A/+ compliance
+      });
+      delete self.listeners;
+    }
   }
 
   this.setValue = function(value, success) {
@@ -111,7 +94,11 @@ const Promesa = function() {
   };
 
   this.resolve = function(value) {
-    self.setValue(value, true);
+    //if(value instanceof Promesa) {
+    //  self.completeWithPromise(value);
+    //} else {
+      self.setValue(value, true);
+    //}
   };
 
   this.reject = function(error) {
@@ -121,7 +108,9 @@ const Promesa = function() {
   this.onComplete = function (callback) {
     if(typeof self.value !== 'undefined') {
       //console.log('calling callback with', self.value);
-      callback(self.value);
+      setTimeout(() => {
+        callback(self.value);
+      }); // Promises A/+ compliance
     } else {
       self.listeners.push(callback);
     }
@@ -129,8 +118,4 @@ const Promesa = function() {
 
 };
 
-module.exports = {
-  resolved,
-  rejected,
-  deferred
-};
+module.exports = Promesa;

@@ -1,6 +1,6 @@
 'use strict';
 
-const Promesa = require('../index.js');
+const Promesa = require('./promesa-adapter.js');
 
 const assert = require('chai').assert;
 const expect = require('chai').expect;
@@ -64,7 +64,7 @@ describe('Promesa', () => {
       }, _ => {
         assert.fail(1,0,'This function should never be called!');
         done()
-      });      
+      });
     })
 
   })
