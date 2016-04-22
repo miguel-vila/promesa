@@ -67,5 +67,17 @@ describe('Promesa', () => {
       });
     })
 
+    it('test4', done => {
+      var dummy  = { dummy: 'dummy'};
+      var promise = Promesa.resolved(dummy).then(function () {
+        return promise;
+      });
+
+      promise.then(null, function (reason) {
+        assert(reason instanceof TypeError);
+        done();
+      });
+    });
+
   })
 })

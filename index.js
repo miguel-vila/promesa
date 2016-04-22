@@ -12,7 +12,9 @@ const Promesa = function() {
     const completeUsing = function (f, value) {
       try {
         let result = f( value );
-        if(result instanceof Promesa) {
+        if ( result === promesa ) {
+          promesa.reject(new TypeError());
+        } else if(result instanceof Promesa) {
           promesa.completeWithPromise( result );
         } else {
           promesa.resolve( result );
@@ -94,11 +96,27 @@ const Promesa = function() {
   };
 
   this.resolve = function(value) {
-    //if(value instanceof Promesa) {
-    //  self.completeWithPromise(value);
-    //} else {
-      self.setValue(value, true);
-    //}
+    if ( value === self) {
+      self.reject(new TypeError());
+    } else if(value instanceof Promesa) {
+      self.completeWithPromise(value);
+    } else {
+      if(value && value.then) {
+        if(typeof value.then === 'function') {
+          try {
+            value.then(self.resolve, self.reject);
+          } catch (e) {
+            if(!self.value) { // neither resolve nor reject were called
+              self.reject(e);
+            }
+          }
+        } else {
+          self.setValue(value, true);
+        }
+      } else {
+        self.setValue(value, true);
+      }
+    }
   };
 
   this.reject = function(error) {
@@ -116,6 +134,16 @@ const Promesa = function() {
     }
   };
 
+
+
+};
+
+Promesa.prototype.String = function () {
+  if(this.value) {
+    return `Promesa(${this.value})`;
+  } else {
+    return `Promesa[Pending]`;
+  }
 };
 
 module.exports = Promesa;
